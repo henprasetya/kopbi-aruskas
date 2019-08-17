@@ -1,0 +1,97 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# chkconfig: 345 98 01
+# description: Startup Script for API
+# Provides:          Fast Engine
+### END INIT INFO
+
+SCRIPT="nohup java -jar /home/mti/projectkopbi/pinjaman/pinjaman-1.jar"
+RUNAS=mti
+
+PIDFILE=/home/mti/projectkopbi/pinjaman/api-pinjaman.pid
+LOGFILE=/home/mti/projectkopbi/pinjaman/api-pinjaman.log
+
+start() {
+  if [ -f $PIDFILE ] && [ -s $PIDFILE ] && kill -0 $(cat $PIDFILE); then
+    echo 'Master already running' >&2
+    return 1
+  fi
+  cd /home/mti/projectkopbi/pinjaman
+  echo 'Starting service… API Master' >&2
+  local CMD="$SCRIPT &> \"$LOGFILE\" & echo \$!"
+  su -c "$CMD" $RUNAS > "$PIDFILE"
+ # "$CMD" $RUNAS > "$PIDFILE"
+ #  nohup java -jar /home/mti/projectkopbi/pinjaman/pinjaman-1.jar &> "/home/mti/projectkopbi/pinjaman/api-pinjaman.log" & echo $! > $PIDFILE
+ # Try with this command line instead of above if not workable
+ # su -s /bin/sh $RUNAS -c "$CMD" > "$PIDFILE"
+ 
+  sleep 2
+  PID=$(cat $PIDFILE)
+    if pgrep -u $RUNAS -f pinjaman-1.jar > /dev/null
+    then
+      echo "API Pinjaman is now running, the PID is $PID"
+    else
+      echo ''
+      echo "Error! Could not start API Pinjaman !"
+    fi
+}
+
+stop() {
+  if [ ! -f "$PIDFILE" ] || ! kill -0 $(cat "$PIDFILE"); then
+    echo 'Service API Pinjaman not running' >&2
+    return 1
+  fi
+  echo 'Stopping service…' >&2
+  kill -15 $(cat "$PIDFILE") && rm -f "$PIDFILE"
+  echo 'Service API Pinjaman stopped' >&2
+}
+
+uninstall() {
+  echo -n "Are you really sure you want to uninstall this service? That cannot be undone. [yes|No] "
+  local SURE
+  read SURE
+  if [ "$SURE" = "yes" ]; then
+    stop
+    rm -f "$PIDFILE"
+    echo "Notice: log file was not removed: $LOGFILE" >&2
+    update-rc.d -f pinjaman remove
+    rm -fv "$0"
+  fi
+}
+
+status() {
+    printf "%-50s" "Checking API Pinjaman ..."
+    if [ -f $PIDFILE ] && [ -s $PIDFILE ]; then
+        PID=$(cat $PIDFILE)
+            if [ -z "$(ps axf | grep ${PID} | grep -v grep)" ]; then
+                printf "%s\n" "The process appears to be dead but pidfile still exists"
+            else    
+                echo "Running, the PID is $PID"
+            fi
+    else
+        printf "%s\n" "Service API Pinjaman not running"
+    fi
+}
+
+
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  status)
+    status
+    ;;
+  uninstall)
+    uninstall
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|status|restart|uninstall}"
+esac
+
