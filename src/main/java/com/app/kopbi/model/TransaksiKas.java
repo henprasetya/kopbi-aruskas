@@ -4,20 +4,23 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
-public class TransaksiKas {
+public class TransaksiKas extends DateAudit {
 	@Id
 	String id;
 	String tanggalTransaksi;
 	String nominal;
 	String keterangan;
 	String akun;
+	String kodeDariKas;
 	String dariKas;
+	String kodeUntukKas;
 	String untukKas;
 	String jenisTransaksi;
 	String ketJenisTransaksi;
 	String ketKas;
 	String tanggalUpdate;
 	String userUpdate;
+	String statusAktif = "AKTIF";
 	
 	public String getId() {
 		return id;
@@ -90,5 +93,23 @@ public class TransaksiKas {
 	}
 	public void setUserUpdate(String userUpdate) {
 		this.userUpdate = userUpdate;
+	}
+	public String getStatusAktif() {
+		return statusAktif;
+	}
+	public void setStatusAktif(String statusAktif) {
+		this.statusAktif = statusAktif;
+	}
+	public String getKodeDariKas() {
+		return kodeDariKas;
+	}
+	public void setKodeDariKas(String kodeDariKas) {
+		this.kodeDariKas = kodeDariKas;
+	}
+	public String getKodeUntukKas() {
+		return kodeUntukKas;
+	}
+	public void setKodeUntukKas(String kodeUntukKas) {
+		this.kodeUntukKas = kodeUntukKas;
 	}
 }

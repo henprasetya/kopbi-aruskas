@@ -1,9 +1,12 @@
 package com.app.kopbi.ctrl;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,13 +17,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.app.kopbi.dao.TransaksiKasDAO;
 import com.app.kopbi.model.ParamTransaksiKas;
+import com.app.kopbi.model.ResponseData;
 import com.app.kopbi.model.TransaksiKas;
+import com.app.kopbi.model.UserPrincipal;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.springframework.core.env.Environment;
 
 @RestController
-public class Controller {
+public class Controller extends AbstractResource{
 
     @Autowired
     TransaksiKasDAO dao;
@@ -50,18 +55,26 @@ public class Controller {
     }
     
     @RequestMapping(value = "/list-kas", produces = "application/json", method = RequestMethod.POST)
-    public List<TransaksiKas> listBy(@RequestBody String param) {
+    public ResponseData listBy(@RequestBody String param) {
     	Gson gsn = new Gson();
-    	ParamTransaksiKas filter = gsn.fromJson(param, new TypeToken<ParamTransaksiKas>() {
+    	Map<String, Object> filter = gsn.fromJson(param, new TypeToken<Map<String, Object>>() {
         }.getType());
     	return dao.list(filter);
     }
 
     @RequestMapping(value = "/post-kas", produces = "application/json", method = RequestMethod.POST)
-    public Map postPinjaman(@RequestBody String param) {
+    public Map postPinjaman(@RequestBody String param, HttpServletRequest servlet) {
+    	UserPrincipal up = (UserPrincipal) servlet.getAttribute("userPrincipal");
         Gson gsn = new Gson();
         TransaksiKas p = gsn.fromJson(param, new TypeToken<TransaksiKas>() {
         }.getType());
+        if (p.getId() == null) {
+			p.setCreatedBy(up.getId());
+			p.setCreatedDate(LocalDateTime.now());
+		}else {
+			p.setUpdatedBy(up.getId());
+			p.setUpdatedDate(LocalDateTime.now());
+		}
         boolean success = dao.saveTransaksiKas(p);
         
         Map map = new HashMap();
