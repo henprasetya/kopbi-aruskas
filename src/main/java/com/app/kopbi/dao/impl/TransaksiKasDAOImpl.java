@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -61,6 +62,7 @@ public class TransaksiKasDAOImpl implements TransaksiKasDAO {
 		}
 		query.skip((mulai));
 		query.limit(akhir);
+		query.with(new Sort(Sort.Direction.ASC, "tanggalTransaksi"));
 		ResponseData data = new ResponseData();
 		data.setAkhir(mulai);
 		data.setMulai(akhir);
